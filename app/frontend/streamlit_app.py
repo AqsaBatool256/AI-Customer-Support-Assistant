@@ -1,8 +1,6 @@
-import requests
 import streamlit as st
 
-
-API_URL = "http://127.0.0.1:8000/support/ask"
+from app.services.rag_service import generate_response
 
 
 st.set_page_config(
@@ -31,27 +29,20 @@ if st.button("Ask Support", type="primary"):
     else:
         with st.spinner("Searching the knowledge base..."):
             try:
-                response = requests.get(
-                    API_URL,
-                    params={"question": question},
-                    timeout=120,
-                )
-
-                response.raise_for_status()
-                data = response.json()
+                response = generate_response(question)
 
                 st.subheader("💬 Answer")
-                st.write(data["answer"])
+                st.write(response["answer"])
 
-                if data["sources"]:
+                if response["sources"]:
                     st.subheader("📚 Sources")
 
-                    for source in data["sources"]:
+                    for source in response["sources"]:
                         st.info(source)
 
-            except requests.exceptions.RequestException as error:
-                st.error(f"Unable to connect to the support service: {error}")
+            except Exception as error:
+                st.error(f"Unable to generate a response: {error}")
 
 st.divider()
 
-st.caption("NovaTech Customer Support Assistant • Powered by RAG + Local AI")
+st.caption("NovaTech Customer Support Assistant • Powered by RAG + Gemini")
