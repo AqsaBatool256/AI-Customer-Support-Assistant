@@ -11,7 +11,14 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
+from app.services.index_knowledge import build_knowledge_index
 from app.services.rag_service import generate_response
+from app.services.vector_store import collection
+
+
+# Build the knowledge index automatically on first startup.
+if collection.count() == 0:
+    build_knowledge_index()
 
 
 st.set_page_config(
@@ -22,6 +29,7 @@ st.set_page_config(
 
 
 st.title("🤖 NovaTech Customer Support")
+
 st.caption("AI-powered support assistant for NovaTech products and policies.")
 
 st.divider()
@@ -48,6 +56,7 @@ if st.button("Ask Support", type="primary"):
                 response = generate_response(question)
 
                 st.subheader("💬 Answer")
+
                 st.write(response["answer"])
 
                 if response["sources"]:

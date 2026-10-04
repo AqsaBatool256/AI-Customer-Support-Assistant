@@ -1,12 +1,19 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from google import genai
 
 
-load_dotenv()
+# Find the project root:
+# AI-Customer-Support-Assistant/
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Explicitly load the .env file from the project root.
+ENV_FILE = PROJECT_ROOT / ".env"
+load_dotenv(dotenv_path=ENV_FILE)
+
+
 MODEL_NAME = "gemini-3.8-flash"
 
 client = None
@@ -17,11 +24,13 @@ def generate_answer(question: str, context: list[str]) -> str:
 
     global client
 
-    if client is None:
-        if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY is not configured.")
+    api_key = os.getenv("GEMINI_API_KEY")
 
-        client = genai.Client(api_key=GEMINI_API_KEY)
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not configured.")
+
+    if client is None:
+        client = genai.Client(api_key=api_key)
 
     context_text = "\n\n".join(context)
 
