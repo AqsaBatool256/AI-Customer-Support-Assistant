@@ -1,12 +1,27 @@
-import requests
+import os
+
+from dotenv import load_dotenv
+from google import genai
 
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "gemma3:4b"
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+MODEL_NAME = "gemini-3.8-flash"
+
+client = None
 
 
 def generate_answer(question: str, context: list[str]) -> str:
     """Generate an answer using the retrieved context."""
+
+    global client
+
+    if client is None:
+        if not GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY is not configured.")
+
+        client = genai.Client(api_key=GEMINI_API_KEY)
 
     context_text = "\n\n".join(context)
 
@@ -29,16 +44,9 @@ Customer question:
 Answer:
 """
 
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-        },
-        timeout=120,
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt,
     )
 
-    response.raise_for_status()
-
-    return response.json()["response"].strip()
+    return response.text.strip()
